@@ -1,214 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Whispeer Admin – Universe</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
+  <meta charset="UTF-8" />
+  <title>Whispeer Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/4712/4712103.png">
   <style>
-    body { margin:0; background:radial-gradient(circle at top, rgba(56,189,248,.05), #020617 60%); color:#e2e8f0; font-family:system-ui,sans-serif; min-height:100vh; display:flex; flex-direction:column; }
-    header { padding:1rem 1.5rem; display:flex; justify-content:space-between; border-bottom:1px solid rgba(148,163,184,.1); background:rgba(2,6,23,.4); backdrop-filter:blur(8px); }
-    .container { flex:1; display:flex; min-height:0; }
-    .sidebar { width:230px; background:rgba(15,23,42,.35); border-right:1px solid rgba(148,163,184,.1); padding:.6rem; }
-    .main { flex:1; display:flex; flex-direction:column; }
-    .btn { background:rgba(148,163,184,.08); border:1px solid rgba(148,163,184,.25); border-radius:.35rem; padding:.25rem .5rem; color:white; cursor:pointer; font-size:.7rem; }
-    .nav-btn { display:block; width:100%; text-align:left; margin-bottom:.3rem; }
-    .nav-btn.active { background:rgba(56,189,248,.2); border-color:rgba(56,189,248,.45); }
-    .topbar { padding:.5rem .75rem; border-bottom:1px solid rgba(148,163,184,.08); display:flex; gap:.5rem; align-items:center; }
-    .list { flex:1; overflow-y:auto; padding:.6rem .75rem; display:grid; gap:.45rem; }
-    .card { background:rgba(2,6,23,.35); border:1px solid rgba(148,163,184,.03); border-radius:.5rem; padding:.45rem .55rem; }
-    .line { display:flex; justify-content:space-between; font-size:.67rem; opacity:.7; }
-    .actions { margin-top:.35rem; display:flex; gap:.4rem; }
-    @media(max-width:880px) {
-      .container { flex-direction:column; }
-      .sidebar { width:100%; display:flex; gap:.4rem; }
+    body {
+      margin: 0;
+      background: #0b0f19;
+      font-family: "Inter", sans-serif;
+      color: #e2e8f0;
     }
+    header {
+      background: #111827;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(148,163,184,.2);
+      position: sticky;
+      top: 0;
+    }
+    h1 { color: #38bdf8; font-size: 1.3rem; }
+    main { display: grid; grid-template-columns: 220px 1fr; height: calc(100vh - 70px); }
+    aside {
+      background: #111827;
+      border-right: 1px solid rgba(148,163,184,.2);
+      padding: 1rem;
+      display: flex; flex-direction: column; gap: .6rem;
+    }
+    button {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: .4rem;
+      color: #e2e8f0;
+      padding: .5rem;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: .2s;
+    }
+    button:hover { background: rgba(56,189,248,.2); }
+    section {
+      padding: 1rem 2rem;
+      overflow-y: auto;
+    }
+    .card {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      padding: .8rem;
+      border-radius: .5rem;
+      margin-bottom: .8rem;
+    }
+    .card small { color: #94a3b8; display: block; margin-top: .3rem; }
+    .actions { margin-top: .5rem; display: flex; gap: .5rem; }
   </style>
 </head>
 <body>
   <header>
-    <div><strong>Whispeer</strong> Admin</div>
-    <div id="user-box">not signed in</div>
+    <h1>Whispeer Admin</h1>
+    <div id="userBox">Not signed in</div>
   </header>
-  <div class="container">
-    <div class="sidebar">
-      <button class="btn nav-btn active" data-view="posts">Posts</button>
-      <button class="btn nav-btn" data-view="reports">Reports</button>
-      <button class="btn nav-btn" data-view="bans">Bans</button>
-      <div style="margin-top:.5rem;font-size:.65rem;opacity:.6">online: <span id="online">0</span></div>
-      <button id="logout" class="btn" style="margin-top:.4rem;">Logout</button>
-    </div>
-    <div class="main">
-      <div class="topbar">
-        <select id="filter" class="btn" style="background:rgba(2,6,23,.35);">
-          <option value="all">All langs</option>
-          <option value="en">EN</option>
-          <option value="tr">TR</option>
-        </select>
-        <button id="reload" class="btn">Reload</button>
-        <span style="margin-left:auto;font-size:.65rem;opacity:.6;">Only UID 8oKx1ovRTFcDNJt5Vz0DCuWDWZ83</span>
-      </div>
-      <div class="list" id="list"></div>
-    </div>
-  </div>
 
-  <script>
+  <main>
+    <aside>
+      <button id="tabPosts">Posts</button>
+      <button id="tabChats">Chats</button>
+      <button id="logoutBtn">Logout</button>
+    </aside>
+    <section id="content"></section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyBqe8RORo6cFifF1aU05eEGRcyafjsH2hU",
       authDomain: "whispeer-81650.firebaseapp.com",
+      databaseURL: "https://whispeer-81650-default-rtdb.firebaseio.com/",
       projectId: "whispeer-81650"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
     const ADMIN_UID = "8oKx1ovRTFcDNJt5Vz0DCuWDWZ83";
 
-    const userBox = document.getElementById("user-box");
-    const listBox = document.getElementById("list");
-    const filterSel = document.getElementById("filter");
-    const onlineBox = document.getElementById("online");
-    const navBtns = document.querySelectorAll(".nav-btn");
-    let currentView = "posts";
+    const userBox = document.getElementById("userBox");
+    const content = document.getElementById("content");
+    const tabPosts = document.getElementById("tabPosts");
+    const tabChats = document.getElementById("tabChats");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-    navBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        navBtns.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentView = btn.dataset.view;
-        loadAdmin();
+    let currentTab = "posts";
+
+    function renderList(data, type) {
+      content.innerHTML = "";
+      Object.entries(data || {}).reverse().forEach(([key, val]) => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <p>${val.text}</p>
+          <small>${val.nickname || "anon"} • ${new Date(val.createdAt || Date.now()).toLocaleString()}</small>
+          <div class="actions">
+            <button data-id="${key}" class="delBtn">Delete</button>
+          </div>
+        `;
+        content.appendChild(div);
       });
-    });
 
-    document.getElementById("reload").addEventListener("click", loadAdmin);
-    filterSel.addEventListener("change", loadAdmin);
-    document.getElementById("logout").addEventListener("click", () => auth.signOut());
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        userBox.innerHTML = '<button id="loginBtn" class="btn">Sign in with Google</button>';
-        document.getElementById("loginBtn").onclick = async () => {
-          const provider = new firebase.auth.GoogleAuthProvider();
-          await auth.signInWithPopup(provider);
+      document.querySelectorAll(".delBtn").forEach(btn => {
+        btn.onclick = () => {
+          if (!confirm("Delete this item?")) return;
+          const id = btn.dataset.id;
+          remove(ref(db, `${type}/${id}`));
         };
-        listBox.innerHTML = "<p>Sign in to manage Whispeer...</p>";
-        return;
-      }
-      if (user.uid !== ADMIN_UID) {
-        userBox.textContent = "not allowed";
-        alert("You are not the admin.");
-        await auth.signOut();
-        return;
-      }
-      userBox.textContent = user.email;
-      loadAdmin();
-    });
-
-    async function loadAdmin() {
-      const user = auth.currentUser;
-      if (!user) return;
-      const res = await fetch("/api/admin", {
-        headers: {
-          "x-admin-uid": user.uid
-        }
       });
-      const data = await res.json();
-      onlineBox.textContent = data.online?.count || 0;
-      renderAdmin(data);
     }
 
-    function renderAdmin(data) {
-      listBox.innerHTML = "";
-      const flang = filterSel.value;
-      if (currentView === "posts") {
-        const posts = data.posts || {};
-        Object.entries(posts)
-          .sort((a,b)=> (b[1].createdAt||0)-(a[1].createdAt||0))
-          .forEach(([id,p]) => {
-            if (flang !== "all" && p.lang !== flang) return;
-            const div = document.createElement("div");
-            div.className = "card";
-            const d = p.createdAt ? new Date(p.createdAt).toLocaleString() : "";
-            div.innerHTML = `
-              <div class="line">
-                <span>${(p.lang||"").toUpperCase()} · ${p.nickname||"anon"}</span>
-                <span>${d}</span>
-              </div>
-              <div style="margin-top:.35rem;">${p.text}</div>
-              <div class="actions">
-                <button class="btn" data-act="del" data-id="${id}">Delete</button>
-                <button class="btn" data-act="ban" data-nick="${p.nickname||""}">Ban</button>
-              </div>
-            `;
-            listBox.appendChild(div);
-          });
-      } else if (currentView === "reports") {
-        const reports = data.reports || {};
-        Object.entries(reports)
-          .sort((a,b)=> (b[1].createdAt||0)-(a[1].createdAt||0))
-          .forEach(([id,r]) => {
-            const d = r.createdAt ? new Date(r.createdAt).toLocaleString() : "";
-            const div = document.createElement("div");
-            div.className = "card";
-            div.innerHTML = `
-              <div class="line">
-                <span>Post: ${r.postId}</span>
-                <span>${d}</span>
-              </div>
-              <div style="margin-top:.35rem;">reason: ${r.reason}</div>
-              <div class="actions">
-                <button class="btn" data-act="del" data-id="${r.postId}">Delete post</button>
-              </div>
-            `;
-            listBox.appendChild(div);
-          });
-      } else if (currentView === "bans") {
-        const bans = data.bans || {};
-        Object.entries(bans).forEach(([nick,info]) => {
-          const d = info.bannedAt ? new Date(info.bannedAt).toLocaleString() : "";
-          const div = document.createElement("div");
-          div.className = "card";
-          div.innerHTML = `
-            <div class="line">
-              <span>${nick}</span>
-              <span>${d}</span>
-            </div>
-            <div style="margin-top:.25rem;">banned</div>
-          `;
-          listBox.appendChild(div);
-        });
-      }
+    tabPosts.onclick = () => { currentTab = "posts"; loadData(); };
+    tabChats.onclick = () => { currentTab = "chats"; loadData(); };
 
-      listBox.querySelectorAll("button[data-act='del']").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const id = btn.dataset.id;
-          const user = auth.currentUser;
-          if (!user) return;
-          await fetch("/api/admin/delete", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-admin-uid": user.uid
-            },
-            body: JSON.stringify({ id })
-          });
-          loadAdmin();
-        });
-      });
-      listBox.querySelectorAll("button[data-act='ban']").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const nickname = btn.dataset.nick;
-          const user = auth.currentUser;
-          if (!user) return;
-          await fetch("/api/admin/ban", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-admin-uid": user.uid
-            },
-            body: JSON.stringify({ nickname })
-          });
-          loadAdmin();
-        });
+    logoutBtn.onclick = () => signOut(auth);
+
+    onValue(ref(db, "posts"), snap => {
+      if (currentTab === "posts") renderList(snap.val(), "posts");
+    });
+    onValue(ref(db, "chats"), snap => {
+      if (currentTab === "chats") renderList(snap.val(), "chats");
+    });
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        userBox.innerHTML = `<button id="loginBtn">Sign in with Google</button>`;
+        document.getElementById("loginBtn").onclick = () => signInWithPopup(auth, provider);
+        content.innerHTML = "<p>Sign in to view content</p>";
+      } else if (user.uid !== ADMIN_UID) {
+        userBox.textContent = "Access Denied";
+        content.innerHTML = "<p>You are not the admin.</p>";
+        signOut(auth);
+      } else {
+        userBox.textContent = user.email;
+        loadData();
+      }
+    });
+
+    function loadData() {
+      const refName = currentTab === "posts" ? "posts" : "chats";
+      onValue(ref(db, refName), snap => {
+        renderList(snap.val(), refName);
       });
     }
   </script>

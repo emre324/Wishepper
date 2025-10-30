@@ -2,251 +2,179 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Whispeer – Anonymous Chat & Sharing</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/4712/4712103.png">
   <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: #111827;
+      --accent: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin:0;
-      background:radial-gradient(circle at top, rgba(56,189,248,.08), #020617 65%);
-      color:#e2e8f0;
-      font-family:system-ui,sans-serif;
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
+      font-family: "Inter", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     header {
-      padding:1rem 1.5rem;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border-bottom:1px solid rgba(148,163,184,.1);
-      background:rgba(2,6,23,.4);
-      backdrop-filter:blur(8px);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 2rem; background: var(--panel);
+      border-bottom: 1px solid rgba(148,163,184,.2);
+      position: sticky; top: 0; z-index: 20;
     }
-    .logo { display:flex; gap:.5rem; align-items:center; font-weight:700; }
-    .logo-dot { width:26px; height:26px; border-radius:999px; background:radial-gradient(circle,#38bdf8,#a855f7); }
-    .badges { display:flex; gap:.5rem; align-items:center; }
-    .badge { background:rgba(56,189,248,.12); border:1px solid rgba(56,189,248,.3); border-radius:999px; padding:.15rem .5rem; font-size:.6rem; }
-    .lang { background:rgba(15,23,42,.35); border:none; color:white; padding:.2rem .45rem; border-radius:999px; font-size:.6rem; cursor:pointer; }
-    .lang.active { border:1px solid rgba(255,255,255,.35); }
-    .container { flex:1; display:flex; gap:1rem; padding:1rem 1.5rem; }
-    .panel { background:rgba(15,23,42,.35); border:1px solid rgba(148,163,184,.1); border-radius:1rem; backdrop-filter:blur(10px); }
-    .posts { flex:2; display:flex; flex-direction:column; }
-    .chat { flex:1; display:flex; flex-direction:column; }
-    .section-title, .new-post { padding:1rem; border-bottom:1px solid rgba(148,163,184,.1); }
-    textarea { width:100%; background:rgba(15,23,42,.3); border:1px solid rgba(148,163,184,.12); border-radius:.75rem; padding:.5rem; color:white; }
-    .primary { background:linear-gradient(120deg,#38bdf8,#a855f7); border:none; border-radius:999px; padding:.35rem .7rem; color:white; cursor:pointer; }
-    .posts-list { flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:.6rem; }
-    .post-card { display:flex; gap:.5rem; background:rgba(15,23,42,.6); border:1px solid rgba(148,163,184,.03); border-radius:.7rem; padding:.4rem .5rem; }
-    .avatar { width:38px; height:38px; border-radius:12px; flex:0 0 38px; }
-    .post-meta { display:flex; justify-content:space-between; font-size:.65rem; opacity:.7; }
-    .small-btn { background:rgba(2,6,23,.25); border:1px solid rgba(148,163,184,.2); border-radius:.4rem; padding:.2rem .4rem; font-size:.6rem; cursor:pointer; }
-    .chat-messages { flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:.4rem; }
-    .chat-msg { display:flex; gap:.4rem; background:rgba(15,23,42,.35); border-radius:.6rem; padding:.25rem .45rem; }
-    .chat-avatar { width:32px; height:32px; border-radius:10px; flex:0 0 32px; }
-    .chat-input { display:flex; gap:.5rem; padding:.6rem; border-top:1px solid rgba(148,163,184,.1); }
-    .chat-input input { flex:1; background:rgba(15,23,42,.25); border:1px solid rgba(148,163,184,.12); border-radius:999px; padding:.35rem .6rem; color:white; }
-    @media(max-width:880px){ .container{flex-direction:column;} }
+    header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent); }
+    .lang-switch { cursor: pointer; color: var(--muted); font-size: .9rem; }
+    main {
+      display: grid; grid-template-columns: 1fr 320px;
+      flex: 1; gap: 1rem; padding: 1rem 2rem;
+    }
+    section {
+      background: var(--panel); border-radius: .75rem;
+      padding: 1rem 1.25rem; box-shadow: 0 0 10px rgba(0,0,0,.3);
+    }
+    h2 { font-size: 1rem; color: var(--accent); margin-bottom: .5rem; }
+    textarea, input {
+      width: 100%; background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: .5rem; color: var(--text);
+      font-size: .9rem; padding: .75rem;
+      resize: none; outline: none;
+    }
+    button {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: .5rem; padding: .5rem 1rem;
+      font-weight: 600; cursor: pointer; transition: .2s;
+    }
+    button:hover { opacity: .9; }
+    .feed, .chat { max-height: 70vh; overflow-y: auto; margin-top: .75rem; }
+    .post, .msg {
+      background: rgba(255,255,255,.03); padding: .6rem .75rem;
+      border-radius: .5rem; margin-bottom: .5rem;
+    }
+    .post small, .msg small { color: var(--muted); font-size: .75rem; }
+    footer {
+      text-align: center; padding: .75rem;
+      font-size: .8rem; color: var(--muted);
+      border-top: 1px solid rgba(148,163,184,.2);
+      background: var(--panel);
+    }
+    @media (max-width:800px) {
+      main { grid-template-columns: 1fr; padding: 1rem; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">
-      <div class="logo-dot"></div>
-      Whispeer
-    </div>
-    <div class="badges">
-      <button class="lang active" data-lang="en">EN</button>
-      <button class="lang" data-lang="tr">TR</button>
-      <div id="nickname-box" class="badge">...</div>
-      <div id="online-badge" class="badge">online: 0</div>
-    </div>
+    <h1>Whispeer</h1>
+    <div class="lang-switch" id="langToggle">EN / TR</div>
   </header>
-  <div class="container">
-    <div class="panel posts">
-      <div class="new-post">
-        <textarea id="post-input" placeholder="Share something anonymously..."></textarea>
-        <div style="text-align:right;margin-top:.4rem;">
-          <button id="post-btn" class="primary">Share</button>
-        </div>
-      </div>
-      <div class="section-title">
-        <span id="feed-title">Feed</span>
-        <small id="feed-sub" style="opacity:.6;font-size:.7rem">Anonymous posts</small>
-      </div>
-      <div id="posts-list" class="posts-list"></div>
-    </div>
-    <div class="panel chat">
-      <div class="section-title">
-        <span id="chat-title">Anonymous Chat</span>
-        <span id="typing-label" style="margin-left:.4rem;font-size:.6rem;opacity:.5;"></span>
-      </div>
-      <div id="chat-messages" class="chat-messages"></div>
-      <div class="chat-input">
-        <input id="chat-input" placeholder="type something..." />
-        <button id="chat-send" class="primary">Send</button>
-      </div>
-    </div>
-  </div>
 
-  <script>
-    const i18n = {
-      en: { share:"Share", feed:"Feed", anon:"Anonymous posts", chat:"Anonymous Chat", report:"Report", reason:"Report reason:" },
-      tr: { share:"Paylaş", feed:"Akış", anon:"Anonim gönderiler", chat:"Anonim Sohbet", report:"Şikayet et", reason:"Şikayet sebebi:" }
+  <main>
+    <section id="posts">
+      <h2 id="shareTitle">Share something anonymously</h2>
+      <textarea id="postText" placeholder="Write your thoughts..." rows="3"></textarea>
+      <button id="shareBtn">Share</button>
+      <div class="feed" id="feed"></div>
+    </section>
+
+    <section id="chat">
+      <h2 id="chatTitle">Anonymous Chat</h2>
+      <div class="chat" id="chatBox"></div>
+      <input id="chatInput" placeholder="Type something..." />
+      <button id="sendBtn">Send</button>
+    </section>
+  </main>
+
+  <footer>© 2025 Whispeer — Built for real anonymous expression</footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBqe8RORo6cFifF1aU05eEGRcyafjsH2hU",
+      authDomain: "whispeer-81650.firebaseapp.com",
+      databaseURL: "https://whispeer-81650-default-rtdb.firebaseio.com/",
+      projectId: "whispeer-81650"
     };
-    let currentLang = "en";
-    let myAvatar = null;
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    document.querySelectorAll(".lang").forEach(btn => {
-      btn.addEventListener("click", () => {
-        currentLang = btn.dataset.lang;
-        document.querySelectorAll(".lang").forEach(b => b.classList.toggle("active", b===btn));
-        document.getElementById("post-input").placeholder = currentLang==="tr" ? "Anonim olarak ne paylaşmak istersin?" : "Share something anonymously...";
-        document.getElementById("chat-input").placeholder = currentLang==="tr" ? "bir şey yaz..." : "type something...";
-        document.getElementById("feed-title").textContent = i18n[currentLang].feed;
-        document.getElementById("feed-sub").textContent = i18n[currentLang].anon;
-        document.getElementById("chat-title").textContent = i18n[currentLang].chat;
-      });
-    });
+    const feed = document.getElementById("feed");
+    const chatBox = document.getElementById("chatBox");
+    const postText = document.getElementById("postText");
+    const shareBtn = document.getElementById("shareBtn");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
 
-    function createAvatarData(nickname) {
-      const shapes = ["square","circle","tilt","pill"];
-      const colors = ["#38bdf8","#a855f7","#f97316","#14b8a6","#f43f5e","#6366f1","#22c55e"];
-      let hash = 0;
-      for (let i=0;i<nickname.length;i++) hash = (hash + nickname.charCodeAt(i)*17) % 9999;
-      return {
-        shape: shapes[hash % shapes.length],
-        color: colors[hash % colors.length]
-      };
-    }
-    function avatarStyle(a) {
-      if (a.shape === "circle") return `background:${a.color};border-radius:999px;`;
-      if (a.shape === "tilt") return `background:linear-gradient(135deg, ${a.color}, rgba(255,255,255,.2));transform:rotate(-3deg);`;
-      if (a.shape === "pill") return `background:${a.color};border-radius:999px;`;
-      return `background:${a.color};`;
-    }
-
-    async function loadPosts() {
-      const res = await fetch("/api/posts");
-      const posts = await res.json();
-      renderPosts(posts);
-    }
-    function renderPosts(posts) {
-      const list = document.getElementById("posts-list");
-      list.innerHTML = "";
-      posts.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "post-card";
-        const date = new Date(p.createdAt);
-        const aData = p.avatar || createAvatarData(p.nickname || "anon");
-        div.innerHTML = `
-          <div class="avatar" style="${avatarStyle(aData)}"></div>
-          <div style="flex:1">
-            <div class="post-meta">
-              <span>${(p.lang||"en").toUpperCase()} · ${p.nickname||"anon"}</span>
-              <span>${date.toLocaleString()}</span>
-            </div>
-            <div style="margin-top:.35rem;">${p.text}</div>
-            <div style="margin-top:.35rem;">
-              <button class="small-btn" data-id="${p.id}" data-action="report">${i18n[currentLang].report}</button>
-            </div>
-          </div>
-        `;
-        list.appendChild(div);
-      });
-      list.querySelectorAll("button[data-action='report']").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const id = btn.dataset.id;
-          const reason = prompt(i18n[currentLang].reason) || "abuse";
-          await fetch("/api/report", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ postId: id, reason, reporter: "client" })
-          });
-          alert("ok");
-        });
-      });
-    }
-
-    document.getElementById("post-btn").addEventListener("click", async () => {
-      const text = document.getElementById("post-input").value.trim();
+    shareBtn.onclick = async () => {
+      const text = postText.value.trim();
       if (!text) return;
-      const nickname = document.getElementById("nickname-box").textContent || "anon";
-      await fetch("/api/posts", {
+      await fetch("/api/post", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, lang: currentLang, nickname, avatar: myAvatar })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ text, lang: currentLang })
       });
-      document.getElementById("post-input").value = "";
+      postText.value = "";
+    };
+
+    sendBtn.onclick = async () => {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      await fetch("/api/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ text, nickname: "anon" })
+      });
+      chatInput.value = "";
+    };
+
+    onValue(ref(db, "posts"), snap => {
+      const data = snap.val() || {};
+      feed.innerHTML = "";
+      Object.values(data).reverse().forEach(p => {
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `<p>${p.text}</p><small>${new Date(p.createdAt || Date.now()).toLocaleString()}</small>`;
+        feed.appendChild(div);
+      });
     });
 
-    // websocket
-    let ws;
-    function setupWS() {
-      const proto = location.protocol === "https:" ? "wss" : "ws";
-      ws = new WebSocket(`${proto}://${location.host}`);
-      ws.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        if (data.type === "welcome") {
-          document.getElementById("nickname-box").textContent = data.nickname;
-          document.getElementById("online-badge").textContent = "online: " + (data.online||1);
-          myAvatar = createAvatarData(data.nickname);
-        }
-        if (data.type === "online-count") {
-          document.getElementById("online-badge").textContent = "online: " + data.online;
-        }
-        if (data.type === "new-post") {
-          loadPosts();
-        }
-        if (data.type === "chat-message") {
-          addChatMsg(data.from, data.text, data.at, data.avatar);
-        }
-        if (data.type === "typing") {
-          document.getElementById("typing-label").textContent = data.from + (currentLang==="tr" ? " yazıyor..." : " is typing...");
-          setTimeout(() => document.getElementById("typing-label").textContent = "", 1100);
-        }
-      };
-      ws.onclose = () => setTimeout(setupWS, 2000);
-    }
-    setupWS();
+    onValue(ref(db, "chats"), snap => {
+      const data = snap.val() || {};
+      chatBox.innerHTML = "";
+      Object.values(data).slice(-40).forEach(m => {
+        const div = document.createElement("div");
+        div.className = "msg";
+        div.innerHTML = `<p>${m.text}</p><small>${m.nickname || "anon"}</small>`;
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
 
-    function addChatMsg(from, text, at, avatar) {
-      const box = document.getElementById("chat-messages");
-      const d = document.createElement("div");
-      d.className = "chat-msg";
-      const date = new Date(at);
-      const aData = avatar || createAvatarData(from);
-      d.innerHTML = `
-        <div class="chat-avatar" style="${avatarStyle(aData)}"></div>
-        <div>
-          <div style="font-weight:600;font-size:.7rem">${from} <span style="opacity:.35;font-size:.6rem">${date.toLocaleTimeString()}</span></div>
-          <div style="font-size:.8rem">${text}</div>
-        </div>
-      `;
-      box.appendChild(d);
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function sendChat() {
-      const input = document.getElementById("chat-input");
-      const text = input.value.trim();
-      if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
-      ws.send(JSON.stringify({ type: "chat-message", text, avatar: myAvatar }));
-      input.value = "";
-    }
-    document.getElementById("chat-send").addEventListener("click", sendChat);
-    document.getElementById("chat-input").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        sendChat();
+    // Dil sistemi
+    let currentLang = "en";
+    const langToggle = document.getElementById("langToggle");
+    langToggle.onclick = () => {
+      currentLang = currentLang === "en" ? "tr" : "en";
+      if (currentLang === "tr") {
+        document.getElementById("shareTitle").textContent = "Anonim bir şey paylaş";
+        document.getElementById("chatTitle").textContent = "Anonim Sohbet";
+        postText.placeholder = "Düşüncelerini yaz...";
+        chatInput.placeholder = "Bir şey yaz...";
       } else {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: "typing" }));
-        }
+        document.getElementById("shareTitle").textContent = "Share something anonymously";
+        document.getElementById("chatTitle").textContent = "Anonymous Chat";
+        postText.placeholder = "Write your thoughts...";
+        chatInput.placeholder = "Type something...";
       }
-    });
-
-    loadPosts();
+    };
   </script>
 </body>
 </html>
