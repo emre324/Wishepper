@@ -1,0 +1,12 @@
+{
+  "name": "whispeer-v7",
+  "version": "7.0.0",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.21.1",
+    "ws": "^8.18.0",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.4.0",
+    "node-fetch": "^3.3.2"
+  }
+}
